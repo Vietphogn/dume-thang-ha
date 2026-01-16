@@ -5,6 +5,7 @@
 #include <string>
 #include <stdexcept>
 #include <cstdint>
+#include <iostream>
 
 namespace niqqa
 {
@@ -53,12 +54,19 @@ GraphicsPipeline::~GraphicsPipeline()
 {
     vkDestroyPipeline(device, graphics_pipeline, nullptr);
     vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+
+    //std::cout << "~GraphicsPipeline()\n";
+}
+
+VkPipeline GraphicsPipeline::get_graphics_pipeline() const noexcept
+{
+    return graphics_pipeline;
 }
 
 void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass render_pass)
 {
-    std::vector<char> vert_shader_code = read_file("../../shaders/vert.spv");
-    std::vector<char> frag_shader_code = read_file("../../shaders/frag.spv");
+    std::vector<char> vert_shader_code = read_file("shaders/vert.spv");
+    std::vector<char> frag_shader_code = read_file("shaders/frag.spv");
 
     VkShaderModule vert_shader_module = create_shader_module(vert_shader_code);
     VkShaderModule frag_shader_module = create_shader_module(frag_shader_code);
@@ -123,6 +131,7 @@ void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass re
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable = VK_FALSE;
     rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+    rasterizer.lineWidth = 1.0f;
 
     VkPipelineMultisampleStateCreateInfo multisampling{};
     multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;

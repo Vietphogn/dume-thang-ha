@@ -5,12 +5,13 @@
 #include <unordered_set>
 #include <cstdint>
 #include <string>
+#include <iostream>
 
 namespace niqqa
 {
 bool QueueFamilyIndices::is_complete()
 {
-    return graphics_famlily.has_value() && present_family.has_value();
+    return graphics_family.has_value() && present_family.has_value();
 }
 
 QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR surface)
@@ -28,7 +29,7 @@ QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR sur
     {
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
         {
-            indices.graphics_famlily = i;
+            indices.graphics_family = i;
         }
 
         VkBool32 present_support = false;
@@ -53,10 +54,12 @@ QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR sur
 Device::Device(VkInstance instance, VkSurfaceKHR surface)
 {
     pick_physical_device(instance, surface);
+    create_logical_device(surface);
 }
 
 Device::~Device()
 {
+    vkDeviceWaitIdle(logical_device);
     vkDestroyDevice(logical_device, nullptr);
 }
 
@@ -70,12 +73,22 @@ VkDevice Device::get_logical_device() const noexcept
     return logical_device;
 }
 
+VkQueue Device::get_graphics_queue() const noexcept
+{
+    return graphics_queue;
+}
+
+VkQueue Device::get_present_queue() const noexcept
+{
+    return present_queue;
+}
+
 void Device::pick_physical_device(VkInstance instance, VkSurfaceKHR surface)
 {
     uint32_t physical_device_count = 0;
     vkEnumeratePhysicalDevices(instance, &physical_device_count, nullptr);
 
-    if (physical_device == 0)
+    if (physical_device_count == 0)
     {
         throw std::runtime_error("failed to find GPUs with Vulkan support");
     }
@@ -103,7 +116,7 @@ void Device::create_logical_device(VkSurfaceKHR surface)
     QueueFamilyIndices indices = find_queue_families(physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-    std::unordered_set<uint32_t> unique_queue_families = {indices.graphics_famlily.value(), indices.present_family.value()};
+    std::unordered_set<uint32_t> unique_queue_families = {indices.graphics_family.value(), indices.present_family.value()};
 
     float queue_priority = 1.0f;
     for (uint32_t queue_family : unique_queue_families)
@@ -123,7 +136,6 @@ void Device::create_logical_device(VkSurfaceKHR surface)
     create_info.queueCreateInfoCount = static_cast<uint32_t>(queue_create_infos.size());
     create_info.pQueueCreateInfos = queue_create_infos.data();
     create_info.pEnabledFeatures = &device_features;
-    create_info.enabledExtensionCount = 0;
     create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions.size());
     create_info.ppEnabledExtensionNames = device_extensions.data();
 
@@ -132,7 +144,7 @@ void Device::create_logical_device(VkSurfaceKHR surface)
         throw std::runtime_error("failed to create logical device");
     }
 
-    vkGetDeviceQueue(logical_device, indices.graphics_famlily.value(), 0, &graphics_queue);
+    vkGetDeviceQueue(logical_device, indices.graphics_family.value(), 0, &graphics_queue);
     vkGetDeviceQueue(logical_device, indices.present_family.value(), 0, &present_queue);
 }
 
@@ -146,9 +158,9 @@ bool Device::check_device_extension_support(VkPhysicalDevice device)
 
     std::unordered_set<std::string> required_extensions(device_extensions.begin(), device_extensions.end());
 
-    for (const auto &extension : device_extensions)
+    for (const auto &extension : available_extensions)
     {
-        required_extensions.erase(extension);
+        required_extensions.erase(extension.extensionName);
     }
 
     return required_extensions.empty();

@@ -1,5 +1,7 @@
 #pragma once 
 
+#include "platform/window.hpp"
+
 #include <vulkan/vulkan.h>
 #include <vector>
 
@@ -8,10 +10,11 @@ namespace niqqa
 class Instance 
 {
 public:
-    Instance();
+    Instance(const Window &window);
     ~Instance();
 
-    VkInstance get() const noexcept;
+    VkInstance get_instance() const noexcept;
+    VkSurfaceKHR get_surface() const noexcept;
 
 private:
     const std::vector<const char *> validation_layers = {
@@ -25,6 +28,7 @@ private:
 #endif
 
     VkInstance instance;
+    VkSurfaceKHR surface;
 
     void init_instance();
     bool check_validation_support() noexcept;

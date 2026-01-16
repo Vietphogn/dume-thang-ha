@@ -1,6 +1,7 @@
 #include "vulkan/framebuffers.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 namespace niqqa
 {
@@ -11,6 +12,29 @@ Framebuffers::Framebuffers(VkDevice _device,
     : device(_device)
 {
     init_framebuffers(render_pass, extent, image_views);
+}
+
+Framebuffers::~Framebuffers()
+{
+    for (auto framebuffer : framebuffers)
+    {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+
+    //std::cout << "~Framebuffer()\n";
+}
+
+void Framebuffers::cleanup()
+{
+    for (auto framebuffer : framebuffers)
+    {
+        vkDestroyFramebuffer(device, framebuffer, nullptr);
+    }
+}
+
+const std::vector<VkFramebuffer> &Framebuffers::get_framebuffers() const noexcept
+{
+    return framebuffers;
 }
 
 void Framebuffers::init_framebuffers(VkRenderPass render_pass, VkExtent2D extent, const std::vector<VkImageView> &image_views)
@@ -36,14 +60,6 @@ void Framebuffers::init_framebuffers(VkRenderPass render_pass, VkExtent2D extent
         {
             throw std::runtime_error("failed to create framebuffer");
         }
-    }
-}
-
-Framebuffers::~Framebuffers()
-{
-    for (auto framebuffer : framebuffers)
-    {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
     }
 }
 }

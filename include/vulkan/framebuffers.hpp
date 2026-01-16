@@ -14,6 +14,10 @@ public:
                  const std::vector<VkImageView> &image_views);
     ~Framebuffers();
 
+    void cleanup();
+
+    const std::vector<VkFramebuffer> &get_framebuffers() const noexcept;
+
 private:
     VkDevice device;
     std::vector<VkFramebuffer> framebuffers;

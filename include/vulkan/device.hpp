@@ -9,7 +9,7 @@ namespace niqqa
 {
 struct QueueFamilyIndices
 {
-    std::optional<uint32_t> graphics_famlily;
+    std::optional<uint32_t> graphics_family;
     std::optional<uint32_t> present_family;
 
     bool is_complete();
@@ -25,6 +25,8 @@ public:
 
     VkPhysicalDevice get_physical_device() const noexcept;
     VkDevice get_logical_device() const noexcept;
+    VkQueue get_graphics_queue() const noexcept;
+    VkQueue get_present_queue() const noexcept;
 
 private:
     const std::vector<const char *> device_extensions = {

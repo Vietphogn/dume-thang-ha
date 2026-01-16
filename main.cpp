@@ -4,7 +4,7 @@
 
 int main()
 {
-    niqqa::NiqqaRenderer engine;
+    niqqa::NiqqaRenderer engine(1280, 720, "RGB Triangle");
 
     try 
     {

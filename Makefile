@@ -1,53 +1,22 @@
-# ====== CONFIG ======
-CXX       := g++
-CXXSTD    := -std=c++20
-WARNINGS  := -Wall -Wextra -Wpedantic
-OPT_DEBUG := -O0 -g
-OPT_REL   := -O2 -DNDEBUG
+CXX := g++
+CXXFLAGS := -std=c++20 -Wall -Wextra -O2 -Iinclude
+LIBS := -lvulkan -lglfw
 
-TARGET    := app
-BUILD_DIR := build
+SRC := main.cpp $(shell find src -name "*.cpp")
+OBJ := $(patsubst %.cpp,build/%.o,$(SRC))
 
-# ====== LIBS ======
-GLFW_CFLAGS := $(shell pkg-config --cflags glfw3)
-GLFW_LIBS   := $(shell pkg-config --libs glfw3)
+TARGET := build/app
 
-VULKAN_LIBS := -lvulkan
-
-INCLUDES := -Iinclude
-CXXFLAGS := $(CXXSTD) $(WARNINGS) $(GLFW_CFLAGS) $(INCLUDES)
-LDFLAGS  := $(GLFW_LIBS) $(VULKAN_LIBS)
-
-# ====== SOURCES ======
-SRC_CPP  := $(shell find src -name "*.cpp")
-MAIN_CPP := main.cpp
-
-SRCS := $(MAIN_CPP) $(SRC_CPP)
-OBJS := $(SRCS:%.cpp=$(BUILD_DIR)/%.o)
-
-# ====== BUILD MODE ======
-ifdef RELEASE
-    CXXFLAGS += $(OPT_REL)
-else
-    CXXFLAGS += $(OPT_DEBUG)
-endif
-
-# ====== RULES ======
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
-	@echo "Linking $@"
-	$(CXX) $^ -o $@ $(LDFLAGS)
+$(TARGET): $(OBJ)
+	$(CXX) $(OBJ) -o $(TARGET) $(LIBS)
 
-$(BUILD_DIR)/%.o: %.cpp
-	@mkdir -p $(dir $@)
-	@echo "Compiling $<"
+build/%.o: %.cpp
+	mkdir -p $(dir $@)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -rf build
 
-run: all
-	./$(TARGET)
-
-.PHONY: all clean run
+rebuild: clean all

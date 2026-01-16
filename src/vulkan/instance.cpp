@@ -6,23 +6,30 @@
 #include <cstdint>
 #include <stdexcept>
 #include <cstring>
-#include "vulkan/instance.hpp"
+#include <iostream>
 
 namespace niqqa
 {
-Instance::Instance()
+Instance::Instance(const Window &window)
 {
     init_instance();
+    surface = window.create_surface(instance);
 }
 
 Instance::~Instance()
 {
+    vkDestroySurfaceKHR(instance, surface, nullptr);
     vkDestroyInstance(instance, nullptr);
 }
 
-VkInstance Instance::get() const noexcept
+VkInstance Instance::get_instance() const noexcept
 {
     return instance;
+}
+
+VkSurfaceKHR Instance::get_surface() const noexcept
+{
+    return surface;
 }
 
 void Instance::init_instance()

@@ -1,6 +1,7 @@
 #include "vulkan/render_pass.hpp"
 
 #include <stdexcept>
+#include <iostream>
 
 namespace niqqa
 {
@@ -12,6 +13,8 @@ RenderPass::RenderPass(VkDevice _device, VkFormat image_format) : device(_device
 RenderPass::~RenderPass()
 {
     vkDestroyRenderPass(device, render_pass, nullptr);
+
+    //std::cout << "~Renderpass()\n";
 }
 
 VkRenderPass RenderPass::get() const noexcept
@@ -40,12 +43,22 @@ void RenderPass::init_render_pass(VkFormat image_format)
     subpass.colorAttachmentCount = 1;
     subpass.pColorAttachments = &color_attachment_ref;
 
+    VkSubpassDependency dependency{};
+    dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependency.dstSubpass = 0;
+    dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.srcAccessMask = 0;
+    dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+    dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
     VkRenderPassCreateInfo render_pass_info{};
     render_pass_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
     render_pass_info.attachmentCount = 1;
     render_pass_info.pAttachments = &color_attachment;
     render_pass_info.subpassCount = 1;
     render_pass_info.pSubpasses = &subpass;
+    render_pass_info.dependencyCount = 1;
+    render_pass_info.pDependencies = &dependency;
 
     if (vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass) != VK_SUCCESS)
     {
