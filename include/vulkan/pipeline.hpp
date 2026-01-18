@@ -8,15 +8,15 @@ namespace niqqa
 class GraphicsPipeline
 {
 public:
-    GraphicsPipeline(VkDevice _device, VkExtent2D extent, VkRenderPass render_pass);
+    GraphicsPipeline(VkDevice device, VkExtent2D extent, VkRenderPass render_pass);
     ~GraphicsPipeline();
 
     VkPipeline get_graphics_pipeline() const noexcept;
 
 private:
-    VkDevice device;
-    VkPipelineLayout pipeline_layout;
-    VkPipeline graphics_pipeline;
+    VkDevice m_device{VK_NULL_HANDLE};
+    VkPipelineLayout m_pipeline_layout{VK_NULL_HANDLE};
+    VkPipeline m_graphics_pipeline{VK_NULL_HANDLE};
 
     void init_graphics_pipeline(VkExtent2D extent, VkRenderPass render_pass);
     VkShaderModule create_shader_module(const std::vector<char> &code);

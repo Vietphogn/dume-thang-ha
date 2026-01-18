@@ -6,8 +6,8 @@
 
 namespace niqqa
 {
-CommandBuffers::CommandBuffers(VkDevice _device, VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight)
-    : device(_device)
+CommandBuffers::CommandBuffers(VkDevice device, VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight)
+    : m_device(device)
 {
     init_command_pool(physical_device, surface);
     init_command_buffer(max_frames_in_flight);
@@ -15,7 +15,7 @@ CommandBuffers::CommandBuffers(VkDevice _device, VkPhysicalDevice physical_devic
 
 CommandBuffers::~CommandBuffers()
 {
-    vkDestroyCommandPool(device, command_pool, nullptr);
+    vkDestroyCommandPool(m_device, m_command_pool, nullptr);
 
     //std::cout << "~CommandBuffers()\n";
 }
@@ -77,7 +77,7 @@ void CommandBuffers::record(VkCommandBuffer command_buffer,
 
 const std::vector<VkCommandBuffer> &CommandBuffers::get_command_buffer() const noexcept
 {
-    return command_buffer;
+    return m_command_buffer;
 }
 
 void CommandBuffers::init_command_pool(VkPhysicalDevice physical_device, VkSurfaceKHR surface)
@@ -89,7 +89,7 @@ void CommandBuffers::init_command_pool(VkPhysicalDevice physical_device, VkSurfa
     pool_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     pool_info.queueFamilyIndex = queue_family_indices.graphics_family.value();
 
-    if (vkCreateCommandPool(device, &pool_info, nullptr, &command_pool) != VK_SUCCESS)
+    if (vkCreateCommandPool(m_device, &pool_info, nullptr, &m_command_pool) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create command pool");
     }
@@ -97,15 +97,15 @@ void CommandBuffers::init_command_pool(VkPhysicalDevice physical_device, VkSurfa
 
 void CommandBuffers::init_command_buffer(uint32_t max_frames_in_flight)
 {
-    command_buffer.resize(max_frames_in_flight);
+    m_command_buffer.resize(max_frames_in_flight);
 
     VkCommandBufferAllocateInfo alloc_info{};
     alloc_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    alloc_info.commandPool = command_pool;
+    alloc_info.commandPool = m_command_pool;
     alloc_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    alloc_info.commandBufferCount = static_cast<uint32_t>(command_buffer.size());
+    alloc_info.commandBufferCount = static_cast<uint32_t>(m_command_buffer.size());
 
-    if (vkAllocateCommandBuffers(device, &alloc_info, command_buffer.data()) != VK_SUCCESS)
+    if (vkAllocateCommandBuffers(m_device, &alloc_info, m_command_buffer.data()) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers");
     }

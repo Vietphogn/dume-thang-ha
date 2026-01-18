@@ -5,21 +5,21 @@
 
 namespace niqqa
 {
-RenderPass::RenderPass(VkDevice _device, VkFormat image_format) : device(_device)
+RenderPass::RenderPass(VkDevice device, VkFormat image_format) : m_device(device)
 {
     init_render_pass(image_format);
 }
 
 RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(device, render_pass, nullptr);
+    vkDestroyRenderPass(m_device, m_render_pass, nullptr);
 
     //std::cout << "~Renderpass()\n";
 }
 
-VkRenderPass RenderPass::get() const noexcept
+VkRenderPass RenderPass::get_render_pass() const noexcept
 {
-    return render_pass;
+    return m_render_pass;
 }
 
 void RenderPass::init_render_pass(VkFormat image_format)
@@ -60,7 +60,7 @@ void RenderPass::init_render_pass(VkFormat image_format)
     render_pass_info.dependencyCount = 1;
     render_pass_info.pDependencies = &dependency;
 
-    if (vkCreateRenderPass(device, &render_pass_info, nullptr, &render_pass) != VK_SUCCESS)
+    if (vkCreateRenderPass(m_device, &render_pass_info, nullptr, &m_render_pass) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create render pass");
     }

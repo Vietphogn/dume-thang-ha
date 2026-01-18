@@ -8,19 +8,19 @@ namespace niqqa
 class Framebuffers
 {
 public:
-    Framebuffers(VkDevice _device,
+    Framebuffers(VkDevice device,
                  VkRenderPass render_pass,
                  VkExtent2D extent,
                  const std::vector<VkImageView> &image_views);
     ~Framebuffers();
 
-    void cleanup();
+    void cleanup() noexcept;
 
     const std::vector<VkFramebuffer> &get_framebuffers() const noexcept;
 
 private:
-    VkDevice device;
-    std::vector<VkFramebuffer> framebuffers;
+    VkDevice m_device{VK_NULL_HANDLE};
+    std::vector<VkFramebuffer> m_framebuffers{VK_NULL_HANDLE};
 
     void init_framebuffers(VkRenderPass render_pass, VkExtent2D extent, const std::vector<VkImageView> &image_views);
 };

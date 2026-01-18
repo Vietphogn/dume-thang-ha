@@ -18,11 +18,11 @@ static std::vector<char> read_file(const std::string &filename)
         throw std::runtime_error("failed to open file");
     }
     
-    size_t file_size = (size_t)file.tellg();
+    size_t file_size = static_cast<size_t>(file.tellg());
     std::vector<char> buffer(file_size);
 
     file.seekg(0);
-    file.read(buffer.data(), file_size);
+    file.read(buffer.data(), static_cast<std::streamsize>(file_size));
 
     file.close();
 
@@ -37,7 +37,7 @@ VkShaderModule GraphicsPipeline::create_shader_module(const std::vector<char> &c
     create_info.pCode = reinterpret_cast<const uint32_t *>(code.data());
 
     VkShaderModule shader_module;
-    if (vkCreateShaderModule(device, &create_info, nullptr, &shader_module) != VK_SUCCESS)
+    if (vkCreateShaderModule(m_device, &create_info, nullptr, &shader_module) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to creat shader module");
     }
@@ -45,22 +45,22 @@ VkShaderModule GraphicsPipeline::create_shader_module(const std::vector<char> &c
     return shader_module;
 }
 
-GraphicsPipeline::GraphicsPipeline(VkDevice _device, VkExtent2D extent, VkRenderPass render_pass) : device(_device)
+GraphicsPipeline::GraphicsPipeline(VkDevice device, VkExtent2D extent, VkRenderPass render_pass) : m_device(device)
 {
     init_graphics_pipeline(extent, render_pass);
 }
 
 GraphicsPipeline::~GraphicsPipeline()
 {
-    vkDestroyPipeline(device, graphics_pipeline, nullptr);
-    vkDestroyPipelineLayout(device, pipeline_layout, nullptr);
+    vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
 
     //std::cout << "~GraphicsPipeline()\n";
 }
 
 VkPipeline GraphicsPipeline::get_graphics_pipeline() const noexcept
 {
-    return graphics_pipeline;
+    return m_graphics_pipeline;
 }
 
 void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass render_pass)
@@ -154,7 +154,7 @@ void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass re
     VkPipelineLayoutCreateInfo pipeline_layout_info{};
     pipeline_layout_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 
-    if (vkCreatePipelineLayout(device, &pipeline_layout_info, nullptr, &pipeline_layout) != VK_SUCCESS)
+    if (vkCreatePipelineLayout(m_device, &pipeline_layout_info, nullptr, &m_pipeline_layout) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout");
     }
@@ -170,16 +170,16 @@ void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass re
     pipeline_info.pMultisampleState = &multisampling;
     pipeline_info.pColorBlendState = &color_blending;
     pipeline_info.pDynamicState = &dynamic_state;
-    pipeline_info.layout = pipeline_layout;
+    pipeline_info.layout = m_pipeline_layout;
     pipeline_info.renderPass = render_pass;
     pipeline_info.subpass = 0;
 
-    if (vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &graphics_pipeline) != VK_SUCCESS)
+    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipeline_info, nullptr, &m_graphics_pipeline) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create graphics pipeline");
     }
 
-    vkDestroyShaderModule(device, vert_shader_module, nullptr);
-    vkDestroyShaderModule(device, frag_shader_module, nullptr);
+    vkDestroyShaderModule(m_device, vert_shader_module, nullptr);
+    vkDestroyShaderModule(m_device, frag_shader_module, nullptr);
 }
 }

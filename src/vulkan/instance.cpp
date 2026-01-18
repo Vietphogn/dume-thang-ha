@@ -13,23 +13,23 @@ namespace niqqa
 Instance::Instance(const Window &window)
 {
     init_instance();
-    surface = window.create_surface(instance);
+    m_surface = window.create_surface(m_instance);
 }
 
 Instance::~Instance()
 {
-    vkDestroySurfaceKHR(instance, surface, nullptr);
-    vkDestroyInstance(instance, nullptr);
+    vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+    vkDestroyInstance(m_instance, nullptr);
 }
 
 VkInstance Instance::get_instance() const noexcept
 {
-    return instance;
+    return m_instance;
 }
 
 VkSurfaceKHR Instance::get_surface() const noexcept
 {
-    return surface;
+    return m_surface;
 }
 
 void Instance::init_instance()
@@ -65,7 +65,7 @@ void Instance::init_instance()
         create_info.ppEnabledLayerNames = validation_layers.data();
     }
 
-    if (vkCreateInstance(&create_info, nullptr, &instance) != VK_SUCCESS)
+    if (vkCreateInstance(&create_info, nullptr, &m_instance) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create vulkan instance");
     }

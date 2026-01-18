@@ -9,7 +9,7 @@ namespace niqqa
 class CommandBuffers
 {
 public:
-    CommandBuffers(VkDevice _device, VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight);
+    CommandBuffers(VkDevice device, VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight);
     ~CommandBuffers();
 
     void record(VkCommandBuffer command_buffer,
@@ -21,9 +21,9 @@ public:
     const std::vector<VkCommandBuffer> &get_command_buffer() const noexcept;
 
 private:
-    VkDevice device;
-    VkCommandPool command_pool;
-    std::vector<VkCommandBuffer> command_buffer;
+    VkDevice m_device{VK_NULL_HANDLE};
+    VkCommandPool m_command_pool{VK_NULL_HANDLE};
+    std::vector<VkCommandBuffer> m_command_buffer;
 
     void init_command_pool(VkPhysicalDevice physical_device, VkSurfaceKHR surface);
     void init_command_buffer(uint32_t max_frames_in_flight);

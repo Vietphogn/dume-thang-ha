@@ -33,14 +33,14 @@ private:
         VK_KHR_SWAPCHAIN_EXTENSION_NAME
     };
 
-    VkPhysicalDevice physical_device = VK_NULL_HANDLE;
-    VkDevice logical_device = VK_NULL_HANDLE;
-    VkQueue graphics_queue;
-    VkQueue present_queue;
+    VkPhysicalDevice m_physical_device{VK_NULL_HANDLE};
+    VkDevice m_logical_device{VK_NULL_HANDLE};
+    VkQueue m_graphics_queue{VK_NULL_HANDLE};
+    VkQueue m_present_queue{VK_NULL_HANDLE};
 
     void pick_physical_device(VkInstance instance, VkSurfaceKHR surface);
     void create_logical_device(VkSurfaceKHR surface);
     bool check_device_extension_support(VkPhysicalDevice device);
-    bool is_device_suitable(VkPhysicalDevice physical_device, VkSurfaceKHR surface);
+    bool is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface);
 };
 }

@@ -5,41 +5,36 @@
 
 namespace niqqa
 {
-Framebuffers::Framebuffers(VkDevice _device,
+Framebuffers::Framebuffers(VkDevice device,
                            VkRenderPass render_pass,
                            VkExtent2D extent,
                            const std::vector<VkImageView> &image_views)
-    : device(_device)
+    : m_device(device)
 {
     init_framebuffers(render_pass, extent, image_views);
 }
 
 Framebuffers::~Framebuffers()
 {
-    for (auto framebuffer : framebuffers)
-    {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
-    }
-
-    //std::cout << "~Framebuffer()\n";
+    cleanup();
 }
 
-void Framebuffers::cleanup()
+void Framebuffers::cleanup() noexcept
 {
-    for (auto framebuffer : framebuffers)
+    for (auto framebuffer : m_framebuffers)
     {
-        vkDestroyFramebuffer(device, framebuffer, nullptr);
+        vkDestroyFramebuffer(m_device, framebuffer, nullptr);
     }
 }
 
 const std::vector<VkFramebuffer> &Framebuffers::get_framebuffers() const noexcept
 {
-    return framebuffers;
+    return m_framebuffers;
 }
 
 void Framebuffers::init_framebuffers(VkRenderPass render_pass, VkExtent2D extent, const std::vector<VkImageView> &image_views)
 {
-    framebuffers.resize(image_views.size());
+    m_framebuffers.resize(image_views.size());
 
     for (size_t i = 0; i < image_views.size(); ++i)
     {
@@ -56,7 +51,7 @@ void Framebuffers::init_framebuffers(VkRenderPass render_pass, VkExtent2D extent
         framebuffer_info.height = extent.height;
         framebuffer_info.layers = 1;
 
-        if (vkCreateFramebuffer(device, &framebuffer_info, nullptr, &framebuffers[i]) != VK_SUCCESS)
+        if (vkCreateFramebuffer(m_device, &framebuffer_info, nullptr, &m_framebuffers[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create framebuffer");
         }

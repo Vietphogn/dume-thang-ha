@@ -12,7 +12,7 @@ namespace niqqa
 class Window
 {
 public:
-    Window(uint32_t w, uint32_t h, const char *title);
+    Window(uint32_t width, uint32_t height, const char *title);
     ~Window();
 
     Window(const Window &) = delete;
@@ -25,10 +25,11 @@ public:
     VkExtent2D get_extent() const noexcept; 
 
 private:
-    uint32_t width, height;
-    std::string title;
+    uint32_t m_width{0};
+    uint32_t m_height{0};
+    std::string m_title;
 
-    GLFWwindow *window = nullptr; 
+    GLFWwindow *m_window{nullptr}; 
 
     void init_window();
 };

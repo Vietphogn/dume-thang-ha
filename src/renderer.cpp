@@ -6,14 +6,14 @@
 namespace niqqa
 {
 Renderer::Renderer(VkExtent2D extent, VkSurfaceKHR surface, VkInstance instance) :
-    surface(surface),
-    device(instance, surface),
-    swap_chain(device.get_logical_device(), device.get_physical_device(), surface, extent),
-    sync_objects(device.get_logical_device(), MAX_FRAMES_IN_FLIGHT, swap_chain.get_image_count()),
-    render_pass(device.get_logical_device(), swap_chain.get_image_format()),
-    graphics_pipeline(device.get_logical_device(), swap_chain.get_extent(), render_pass.get()),
-    framebuffers(device.get_logical_device(), render_pass.get(), swap_chain.get_extent(), swap_chain.get_image_views()),
-    command_buffers(device.get_logical_device(), device.get_physical_device(), surface, MAX_FRAMES_IN_FLIGHT)
+    m_surface(surface),
+    m_device(instance, surface),
+    m_swap_chain(m_device.get_logical_device(), m_device.get_physical_device(), surface, extent),
+    m_sync_objects(m_device.get_logical_device(), s_max_frames_in_flight, m_swap_chain.get_image_count()),
+    m_render_pass(m_device.get_logical_device(), m_swap_chain.get_image_format()),
+    m_graphics_pipeline(m_device.get_logical_device(), m_swap_chain.get_extent(), m_render_pass.get_render_pass()),
+    m_framebuffers(m_device.get_logical_device(), m_render_pass.get_render_pass(), m_swap_chain.get_extent(), m_swap_chain.get_image_views()),
+    m_command_buffers(m_device.get_logical_device(), m_device.get_physical_device(), surface, s_max_frames_in_flight)
 {
 }
 
@@ -21,10 +21,10 @@ Renderer::~Renderer()
 {
 }
 
-void Renderer::cleanup_swap_chain()
+void Renderer::cleanup_swap_chain() noexcept
 {
-    framebuffers.cleanup();
-    swap_chain.cleanup();
+    m_framebuffers.cleanup();
+    m_swap_chain.cleanup();
 }
 
 void Renderer::recreate_swap_chain()
@@ -37,37 +37,37 @@ void Renderer::recreate_swap_chain()
 
 void Renderer::wait_idle() noexcept
 {
-    vkDeviceWaitIdle(device.get_logical_device());
+    vkDeviceWaitIdle(m_device.get_logical_device());
 }
 
 void Renderer::draw_frame()
 {
-    VkFence frame_fence = sync_objects.frame_fence(current_frame);
+    VkFence frame_fence = m_sync_objects.frame_fence(m_current_frame);
 
-    vkWaitForFences(device.get_logical_device(), 1, &frame_fence, VK_TRUE, UINT64_MAX);
-    vkResetFences(device.get_logical_device(), 1, &frame_fence);
+    vkWaitForFences(m_device.get_logical_device(), 1, &frame_fence, VK_TRUE, UINT64_MAX);
+    vkResetFences(m_device.get_logical_device(), 1, &frame_fence);
 
-    VkSemaphore acquire_semaphore = sync_objects.acquire_semaphore(current_frame);
+    VkSemaphore acquire_semaphore = m_sync_objects.acquire_semaphore(m_current_frame);
 
     uint32_t image_index;
-    vkAcquireNextImageKHR(device.get_logical_device(), 
-                          swap_chain.get_swap_chain(),
+    vkAcquireNextImageKHR(m_device.get_logical_device(), 
+                          m_swap_chain.get_swap_chain(),
                           UINT64_MAX,
                           acquire_semaphore,
                           VK_NULL_HANDLE,
                           &image_index);
 
-    vkResetCommandBuffer(command_buffers.get_command_buffer()[current_frame], 0);
+    vkResetCommandBuffer(m_command_buffers.get_command_buffer()[m_current_frame], 0);
 
-    command_buffers.record(command_buffers.get_command_buffer()[current_frame],
-                           framebuffers.get_framebuffers()[image_index],
-                           render_pass.get(),
-                           swap_chain.get_extent(), 
-                           graphics_pipeline.get_graphics_pipeline());
+    m_command_buffers.record(m_command_buffers.get_command_buffer()[m_current_frame],
+                           m_framebuffers.get_framebuffers()[image_index],
+                           m_render_pass.get_render_pass(),
+                           m_swap_chain.get_extent(), 
+                           m_graphics_pipeline.get_graphics_pipeline());
 
     VkPipelineStageFlags wait_stages = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-    VkCommandBuffer command_buffer = command_buffers.get_command_buffer()[current_frame];
-    VkSemaphore submit_semaphore = sync_objects.submit_semaphore(image_index);
+    VkCommandBuffer command_buffer = m_command_buffers.get_command_buffer()[m_current_frame];
+    VkSemaphore submit_semaphore = m_sync_objects.submit_semaphore(image_index);
 
     VkSubmitInfo submit_info{};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -79,7 +79,7 @@ void Renderer::draw_frame()
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = &submit_semaphore;
 
-    if (vkQueueSubmit(device.get_graphics_queue(), 1, &submit_info, frame_fence) != VK_SUCCESS)
+    if (vkQueueSubmit(m_device.get_graphics_queue(), 1, &submit_info, frame_fence) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to submit draw command buffer");
     }
@@ -89,14 +89,14 @@ void Renderer::draw_frame()
     present_info.waitSemaphoreCount = 1;
     present_info.pWaitSemaphores = &submit_semaphore;
 
-    VkSwapchainKHR swap_chains = swap_chain.get_swap_chain();
+    VkSwapchainKHR swap_chains = m_swap_chain.get_swap_chain();
 
     present_info.swapchainCount = 1;
     present_info.pSwapchains = &swap_chains;
     present_info.pImageIndices = &image_index;
 
-    vkQueuePresentKHR(device.get_present_queue(), &present_info);
+    vkQueuePresentKHR(m_device.get_present_queue(), &present_info);
 
-    current_frame = (current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+    m_current_frame = (m_current_frame + 1) % s_max_frames_in_flight;
 }
 }

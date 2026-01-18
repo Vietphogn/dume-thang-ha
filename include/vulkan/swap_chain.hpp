@@ -22,7 +22,7 @@ public:
     SwapChain(VkDevice logical_device, VkPhysicalDevice physical_device, VkSurfaceKHR surface, VkExtent2D extent);
     ~SwapChain();
 
-    void cleanup();
+    void cleanup() noexcept;
     void recreate();
 
     VkSwapchainKHR get_swap_chain() const noexcept;
@@ -32,17 +32,17 @@ public:
     const std::vector<VkImageView> &get_image_views() const noexcept;
 
 private:
-    uint32_t swap_chain_image_count;
+    uint32_t m_swap_chain_image_count;
 
-    VkSwapchainKHR swap_chain;
-    std::vector<VkImage> swap_chain_images;
-    VkFormat swap_chain_image_format;
-    VkExtent2D swap_chain_extent;
-    VkPhysicalDevice physical_device;
-    VkDevice device;
-    VkSurfaceKHR surface;
+    std::vector<VkImage> m_swap_chain_images;
+    std::vector<VkImageView> m_swap_chain_image_views;
 
-    std::vector<VkImageView> swap_chain_image_views;
+    VkSwapchainKHR m_swap_chain;
+    VkFormat m_swap_chain_image_format;
+    VkExtent2D m_swap_chain_extent;
+    VkDevice m_device;
+    VkPhysicalDevice m_physical_device;
+    VkSurfaceKHR m_surface;
 
     VkSurfaceFormatKHR choose_swap_surface_format(const std::vector<VkSurfaceFormatKHR> &available_formats) noexcept;
     VkPresentModeKHR choose_swap_present_mode(const std::vector<VkPresentModeKHR> &avaiable_present_modes) noexcept;

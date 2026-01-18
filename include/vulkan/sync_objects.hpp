@@ -17,11 +17,11 @@ public:
     VkSemaphore submit_semaphore(uint32_t image_index) const noexcept;
 
 private:
-    VkDevice device;
+    VkDevice m_device{VK_NULL_HANDLE};
 
-    std::vector<VkSemaphore> acquire_semaphores;
-    std::vector<VkSemaphore> submit_semaphores;
-    std::vector<VkFence> frame_fences;
+    std::vector<VkSemaphore> m_acquire_semaphores;
+    std::vector<VkSemaphore> m_submit_semaphores;
+    std::vector<VkFence> m_frame_fences;
 
     void init_sync_objects(uint32_t frames_in_flight, uint32_t image_count);
 };

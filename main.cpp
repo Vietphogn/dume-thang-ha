@@ -1,14 +1,14 @@
-#include "app/application.hpp"
+#include "app/engine.hpp"
 
 #include <iostream>
 
 int main()
 {
-    niqqa::NiqqaRenderer engine(1280, 720, "RGB Triangle");
+    niqqa::NiqqaRenderer test_window(800, 600, "RGB Triangle");
 
     try 
     {
-        engine.run();
+        test_window.run();
     }
     catch (const std::exception &e)
     {

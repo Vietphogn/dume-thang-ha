@@ -24,7 +24,7 @@ QueueFamilyIndices find_queue_families(VkPhysicalDevice device, VkSurfaceKHR sur
     std::vector<VkQueueFamilyProperties> queue_families(queue_family_count);
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
     
-    int i = 0;
+    uint32_t i = 0;
     for (const auto &queue_family : queue_families)
     {
         if (queue_family.queueFlags & VK_QUEUE_GRAPHICS_BIT)
@@ -59,28 +59,28 @@ Device::Device(VkInstance instance, VkSurfaceKHR surface)
 
 Device::~Device()
 {
-    vkDeviceWaitIdle(logical_device);
-    vkDestroyDevice(logical_device, nullptr);
+    vkDeviceWaitIdle(m_logical_device);
+    vkDestroyDevice(m_logical_device, nullptr);
 }
 
 VkPhysicalDevice Device::get_physical_device() const noexcept
 {
-    return physical_device;
+    return m_physical_device;
 }
 
 VkDevice Device::get_logical_device() const noexcept
 {
-    return logical_device;
+    return m_logical_device;
 }
 
 VkQueue Device::get_graphics_queue() const noexcept
 {
-    return graphics_queue;
+    return m_graphics_queue;
 }
 
 VkQueue Device::get_present_queue() const noexcept
 {
-    return present_queue;
+    return m_present_queue;
 }
 
 void Device::pick_physical_device(VkInstance instance, VkSurfaceKHR surface)
@@ -100,12 +100,12 @@ void Device::pick_physical_device(VkInstance instance, VkSurfaceKHR surface)
     {
         if (is_device_suitable(device, surface))
         {
-            physical_device = device;
+            m_physical_device = device;
             break;
         }
     }
 
-    if (physical_device == VK_NULL_HANDLE)
+    if (m_physical_device == VK_NULL_HANDLE)
     {
         throw std::runtime_error("failed to find a suitable GPU");
     }
@@ -113,7 +113,7 @@ void Device::pick_physical_device(VkInstance instance, VkSurfaceKHR surface)
 
 void Device::create_logical_device(VkSurfaceKHR surface)
 {
-    QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+    QueueFamilyIndices indices = find_queue_families(m_physical_device, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
     std::unordered_set<uint32_t> unique_queue_families = {indices.graphics_family.value(), indices.present_family.value()};
@@ -139,13 +139,13 @@ void Device::create_logical_device(VkSurfaceKHR surface)
     create_info.enabledExtensionCount = static_cast<uint32_t>(device_extensions.size());
     create_info.ppEnabledExtensionNames = device_extensions.data();
 
-    if (vkCreateDevice(physical_device, &create_info, nullptr, &logical_device) != VK_SUCCESS)
+    if (vkCreateDevice(m_physical_device, &create_info, nullptr, &m_logical_device) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create logical device");
     }
 
-    vkGetDeviceQueue(logical_device, indices.graphics_family.value(), 0, &graphics_queue);
-    vkGetDeviceQueue(logical_device, indices.present_family.value(), 0, &present_queue);
+    vkGetDeviceQueue(m_logical_device, indices.graphics_family.value(), 0, &m_graphics_queue);
+    vkGetDeviceQueue(m_logical_device, indices.present_family.value(), 0, &m_present_queue);
 }
 
 bool Device::check_device_extension_support(VkPhysicalDevice device)
@@ -166,16 +166,16 @@ bool Device::check_device_extension_support(VkPhysicalDevice device)
     return required_extensions.empty();
 }
 
-bool Device::is_device_suitable(VkPhysicalDevice physical_device, VkSurfaceKHR surface)
+bool Device::is_device_suitable(VkPhysicalDevice device, VkSurfaceKHR surface)
 {
-    QueueFamilyIndices indices = find_queue_families(physical_device, surface);
+    QueueFamilyIndices indices = find_queue_families(device, surface);
 
-    bool extensions_support = check_device_extension_support(physical_device);
+    bool extensions_support = check_device_extension_support(device);
     bool swap_chain_adequate = false;
 
     if (extensions_support)
     {
-        SwapChainSupportDetails swap_chain_support = query_swap_chain_support(physical_device, surface);
+        SwapChainSupportDetails swap_chain_support = query_swap_chain_support(device, surface);
         swap_chain_adequate = !swap_chain_support.formats.empty() && !swap_chain_support.present_modes.empty();        
     }
 

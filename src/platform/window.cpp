@@ -5,20 +5,20 @@
 
 namespace niqqa
 {
-Window::Window(uint32_t w, uint32_t h, const char *title) : width(w), height(h), title(title)
+Window::Window(uint32_t w, uint32_t h, const char *title) : m_width(w), m_height(h), m_title(title)
 {
     init_window();
 }
 
 Window::~Window()
 {
-    glfwDestroyWindow(window);
+    glfwDestroyWindow(m_window);
     glfwTerminate();
 }
 
 bool Window::should_close() const noexcept
 {
-    return glfwWindowShouldClose(window);
+    return glfwWindowShouldClose(m_window);
 }
 
 void Window::init_window()
@@ -31,9 +31,9 @@ void Window::init_window()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    window = glfwCreateWindow(width, height, title.c_str(), nullptr, nullptr);
+    m_window = glfwCreateWindow(static_cast<int>(m_width), static_cast<int>(m_height), m_title.c_str(), nullptr, nullptr);
 
-    if (!window)
+    if (!m_window)
     {
         throw std::runtime_error("failed to create window");
     }
@@ -43,7 +43,7 @@ VkSurfaceKHR Window::create_surface(VkInstance instance) const
 {
     VkSurfaceKHR surface;
 
-    if (glfwCreateWindowSurface(instance, window, nullptr, &surface) != VK_SUCCESS)
+    if (glfwCreateWindowSurface(instance, m_window, nullptr, &surface) != VK_SUCCESS)
     {
         throw std::runtime_error("failed to create window surface");
     }
@@ -58,13 +58,13 @@ void Window::poll_events() const noexcept
 
 GLFWwindow *Window::get_window_ptr() const noexcept
 {
-    return window;
+    return m_window;
 }
 
 VkExtent2D Window::get_extent() const noexcept
 {
     int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
+    glfwGetFramebufferSize(m_window, &width, &height);
 
     VkExtent2D extent = {
         static_cast<uint32_t>(width),

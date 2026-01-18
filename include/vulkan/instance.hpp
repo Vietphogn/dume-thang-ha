@@ -27,8 +27,8 @@ private:
     static constexpr bool enable_validation_layers = true;
 #endif
 
-    VkInstance instance;
-    VkSurfaceKHR surface;
+    VkInstance m_instance{VK_NULL_HANDLE};
+    VkSurfaceKHR m_surface{VK_NULL_HANDLE};
 
     void init_instance();
     bool check_validation_support() noexcept;
