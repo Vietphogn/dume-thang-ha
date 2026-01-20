@@ -12,6 +12,8 @@ public:
     ~GraphicsPipeline();
 
     VkPipeline get_graphics_pipeline() const noexcept;
+    void cleanup() const noexcept;
+    void recreate(VkExtent2D extent, VkRenderPass render_pass);
 
 private:
     VkDevice m_device{VK_NULL_HANDLE};

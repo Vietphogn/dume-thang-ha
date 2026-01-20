@@ -12,14 +12,23 @@ RenderPass::RenderPass(VkDevice device, VkFormat image_format) : m_device(device
 
 RenderPass::~RenderPass()
 {
-    vkDestroyRenderPass(m_device, m_render_pass, nullptr);
-
+    cleanup();
     //std::cout << "~Renderpass()\n";
 }
 
 VkRenderPass RenderPass::get_render_pass() const noexcept
 {
     return m_render_pass;
+}
+
+void RenderPass::cleanup() const noexcept
+{
+    vkDestroyRenderPass(m_device, m_render_pass, nullptr);
+}
+
+void RenderPass::recreate(VkFormat image_format)
+{
+    init_render_pass(image_format);
 }
 
 void RenderPass::init_render_pass(VkFormat image_format)

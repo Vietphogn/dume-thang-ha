@@ -23,7 +23,7 @@ public:
     ~SwapChain();
 
     void cleanup() noexcept;
-    void recreate();
+    void recreate(VkExtent2D extent);
 
     VkSwapchainKHR get_swap_chain() const noexcept;
     VkFormat get_image_format() const noexcept;

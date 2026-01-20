@@ -18,6 +18,8 @@ public:
                 VkExtent2D extent,
                 VkPipeline graphics_pipeline);
     
+    void cleanup() const noexcept;
+    void recreate(VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight);
     const std::vector<VkCommandBuffer> &get_command_buffer() const noexcept;
 
 private:

@@ -4,7 +4,7 @@
 
 int main()
 {
-    niqqa::NiqqaRenderer test_window(800, 600, "RGB Triangle");
+    niqqa::NiqqaEngine test_window(800, 600, "RGB Triangle");
 
     try 
     {

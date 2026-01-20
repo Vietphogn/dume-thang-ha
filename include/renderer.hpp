@@ -19,12 +19,15 @@ public:
 
     void draw_frame();
     void wait_idle() noexcept;
+    void set_framebuffer_resized(VkExtent2D new_extent) noexcept;
 
 private:
     static constexpr uint32_t s_max_frames_in_flight{2};
     uint32_t m_current_frame{0};
+    bool m_framebuffer_resized{false};
 
-    VkSurfaceKHR m_surface;
+    VkSurfaceKHR m_surface{VK_NULL_HANDLE};
+    VkExtent2D m_extent;
     Device m_device;
     SwapChain m_swap_chain;
     SyncObjects m_sync_objects;

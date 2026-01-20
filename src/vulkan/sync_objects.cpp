@@ -38,6 +38,25 @@ VkSemaphore SyncObjects::submit_semaphore(uint32_t image_index) const noexcept
     return m_submit_semaphores[image_index];
 }
 
+void SyncObjects::recreate(uint32_t image_count)
+{
+    for (const auto &semaphore : m_submit_semaphores)
+    {
+        vkDestroySemaphore(m_device, semaphore, nullptr);
+    }
+
+    VkSemaphoreCreateInfo semaphore_info{};
+    semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    for (size_t i = 0; i < image_count; ++i)
+    {
+        if (vkCreateSemaphore(m_device, &semaphore_info, nullptr, &m_submit_semaphores[i]) != VK_SUCCESS)
+        {
+            throw std::runtime_error("failed to create semaphore");
+        }
+    }
+}
+
 void SyncObjects::init_sync_objects(uint32_t frames_in_flight, uint32_t swap_chain_image_count)
 {
     m_acquire_semaphores.resize(frames_in_flight);

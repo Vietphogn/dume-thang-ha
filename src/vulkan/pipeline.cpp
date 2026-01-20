@@ -52,15 +52,24 @@ GraphicsPipeline::GraphicsPipeline(VkDevice device, VkExtent2D extent, VkRenderP
 
 GraphicsPipeline::~GraphicsPipeline()
 {
-    vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
-    vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
-
+    cleanup();
     //std::cout << "~GraphicsPipeline()\n";
 }
 
 VkPipeline GraphicsPipeline::get_graphics_pipeline() const noexcept
 {
     return m_graphics_pipeline;
+}
+
+void GraphicsPipeline::cleanup() const noexcept
+{
+    vkDestroyPipeline(m_device, m_graphics_pipeline, nullptr);
+    vkDestroyPipelineLayout(m_device, m_pipeline_layout, nullptr);
+}
+
+void GraphicsPipeline::recreate(VkExtent2D extent, VkRenderPass render_pass)
+{
+    init_graphics_pipeline(extent, render_pass);
 }
 
 void GraphicsPipeline::init_graphics_pipeline(VkExtent2D extent, VkRenderPass render_pass)

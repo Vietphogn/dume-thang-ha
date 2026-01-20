@@ -15,7 +15,7 @@ CommandBuffers::CommandBuffers(VkDevice device, VkPhysicalDevice physical_device
 
 CommandBuffers::~CommandBuffers()
 {
-    vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+    cleanup();
 
     //std::cout << "~CommandBuffers()\n";
 }
@@ -73,6 +73,17 @@ void CommandBuffers::record(VkCommandBuffer command_buffer,
     {
         throw std::runtime_error("failed to record command buffer");
     }
+}
+
+void CommandBuffers::cleanup() const noexcept
+{
+    vkDestroyCommandPool(m_device, m_command_pool, nullptr);
+}
+
+void CommandBuffers::recreate(VkPhysicalDevice physical_device, VkSurfaceKHR surface, uint32_t max_frames_in_flight)
+{
+    init_command_pool(physical_device, surface);
+    init_command_buffer(max_frames_in_flight);
 }
 
 const std::vector<VkCommandBuffer> &CommandBuffers::get_command_buffer() const noexcept

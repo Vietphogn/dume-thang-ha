@@ -44,7 +44,7 @@ SwapChain::SwapChain(VkDevice logical_device, VkPhysicalDevice physical_device, 
     init_image_views();
 }
 
-SwapChain::~SwapChain() noexcept
+SwapChain::~SwapChain()
 {
     cleanup();
 }
@@ -59,9 +59,10 @@ void SwapChain::cleanup() noexcept
     vkDestroySwapchainKHR(m_device, m_swap_chain, nullptr);
 }
 
-void SwapChain::recreate()
+void SwapChain::recreate(VkExtent2D extent) 
 {
-
+    init_swap_chain(extent);
+    init_image_views();
 }
 
 VkSwapchainKHR SwapChain::get_swap_chain() const noexcept

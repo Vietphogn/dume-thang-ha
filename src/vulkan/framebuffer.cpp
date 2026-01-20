@@ -27,6 +27,11 @@ void Framebuffers::cleanup() noexcept
     }
 }
 
+void Framebuffers::recreate(VkRenderPass render_pass, VkExtent2D extent, const std::vector<VkImageView> &image_views) noexcept
+{
+    init_framebuffers(render_pass, extent, image_views);
+}
+
 const std::vector<VkFramebuffer> &Framebuffers::get_framebuffers() const noexcept
 {
     return m_framebuffers;
@@ -38,15 +43,11 @@ void Framebuffers::init_framebuffers(VkRenderPass render_pass, VkExtent2D extent
 
     for (size_t i = 0; i < image_views.size(); ++i)
     {
-        VkImageView attachments[] = {
-            image_views[i]
-        };
-
         VkFramebufferCreateInfo framebuffer_info{};
         framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebuffer_info.renderPass = render_pass;
         framebuffer_info.attachmentCount = 1;
-        framebuffer_info.pAttachments = attachments;
+        framebuffer_info.pAttachments = &image_views[i];
         framebuffer_info.width = extent.width;
         framebuffer_info.height = extent.height;
         framebuffer_info.layers = 1;

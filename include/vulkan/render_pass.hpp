@@ -11,6 +11,8 @@ public:
     ~RenderPass();
 
     VkRenderPass get_render_pass() const noexcept;
+    void cleanup() const noexcept;
+    void recreate(VkFormat image_format);
 
 private:
     VkRenderPass m_render_pass{VK_NULL_HANDLE};

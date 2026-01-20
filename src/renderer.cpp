@@ -7,6 +7,7 @@ namespace niqqa
 {
 Renderer::Renderer(VkExtent2D extent, VkSurfaceKHR surface, VkInstance instance) :
     m_surface(surface),
+    m_extent(extent),
     m_device(instance, surface),
     m_swap_chain(m_device.get_logical_device(), m_device.get_physical_device(), surface, extent),
     m_sync_objects(m_device.get_logical_device(), s_max_frames_in_flight, m_swap_chain.get_image_count()),
@@ -23,7 +24,10 @@ Renderer::~Renderer()
 
 void Renderer::cleanup_swap_chain() noexcept
 {
+    m_command_buffers.cleanup();
     m_framebuffers.cleanup();
+    m_graphics_pipeline.cleanup();
+    m_render_pass.cleanup();
     m_swap_chain.cleanup();
 }
 
@@ -33,11 +37,28 @@ void Renderer::recreate_swap_chain()
 
     cleanup_swap_chain();
 
+    m_swap_chain.recreate(m_extent);
+    m_sync_objects.recreate(m_swap_chain.get_image_count());
+    m_render_pass.recreate(m_swap_chain.get_image_format());
+    m_graphics_pipeline.recreate(m_swap_chain.get_extent(), m_render_pass.get_render_pass());
+    m_framebuffers.recreate(m_render_pass.get_render_pass(), m_swap_chain.get_extent(), m_swap_chain.get_image_views());
+    m_command_buffers.recreate(m_device.get_physical_device(), m_surface, s_max_frames_in_flight);
 }
 
 void Renderer::wait_idle() noexcept
 {
     vkDeviceWaitIdle(m_device.get_logical_device());
+}
+
+void Renderer::set_framebuffer_resized(VkExtent2D new_extent) noexcept
+{
+    if (new_extent.width == 0 || new_extent.height == 0)
+    {
+        return;
+    }
+
+    m_extent = new_extent;
+    m_framebuffer_resized = true;
 }
 
 void Renderer::draw_frame()
@@ -50,12 +71,22 @@ void Renderer::draw_frame()
     VkSemaphore acquire_semaphore = m_sync_objects.acquire_semaphore(m_current_frame);
 
     uint32_t image_index;
-    vkAcquireNextImageKHR(m_device.get_logical_device(), 
+    VkResult result = vkAcquireNextImageKHR(m_device.get_logical_device(), 
                           m_swap_chain.get_swap_chain(),
                           UINT64_MAX,
                           acquire_semaphore,
                           VK_NULL_HANDLE,
                           &image_index);
+
+    if (result == VK_ERROR_OUT_OF_DATE_KHR)
+    {
+        recreate_swap_chain();
+        return;
+    }
+    else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+    {
+        throw std::runtime_error("failed to acquired swap chain image");
+    }
 
     vkResetCommandBuffer(m_command_buffers.get_command_buffer()[m_current_frame], 0);
 
@@ -95,7 +126,18 @@ void Renderer::draw_frame()
     present_info.pSwapchains = &swap_chains;
     present_info.pImageIndices = &image_index;
 
-    vkQueuePresentKHR(m_device.get_present_queue(), &present_info);
+    result =  vkQueuePresentKHR(m_device.get_present_queue(), &present_info);
+    
+    if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_framebuffer_resized)
+    {
+        m_framebuffer_resized = false;
+        recreate_swap_chain(); 
+        return;
+    }
+    else if (result != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to present swap chain image");
+    }
 
     m_current_frame = (m_current_frame + 1) % s_max_frames_in_flight;
 }

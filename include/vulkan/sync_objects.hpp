@@ -9,12 +9,13 @@ namespace niqqa
 class SyncObjects
 {
 public:
-    SyncObjects(VkDevice device, uint32_t frames_in_flight, uint32_t swap_chain_image_count);
+    SyncObjects(VkDevice device, uint32_t frames_in_flight, uint32_t image_count);
     ~SyncObjects();
 
     VkSemaphore acquire_semaphore(uint32_t frame_index) const noexcept;
     VkFence frame_fence(uint32_t frame_index) const noexcept;
     VkSemaphore submit_semaphore(uint32_t image_index) const noexcept;
+    void recreate(uint32_t image_count);
 
 private:
     VkDevice m_device{VK_NULL_HANDLE};
